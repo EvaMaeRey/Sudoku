@@ -1,0 +1,173 @@
+---
+title: "Sudoku Solver"
+author: "Evangeline Reynolds"
+date: "May 31, 2016"
+output: html_document
+---
+
+
+```{r}
+library(stringr)
+
+ThreeByThree=matrix(1, 3,3)
+Ninedrents=rbind(
+  cbind(ThreeByThree*1, ThreeByThree*2, ThreeByThree*3),
+  cbind(ThreeByThree*4, ThreeByThree*5, ThreeByThree*6),
+  cbind(ThreeByThree*7, ThreeByThree*8, ThreeByThree*9)
+)
+
+Ninedrents
+
+inputs=matrix(c(
+              " ","1","9",    " "," ","3",    " "," "," ",
+              "5","7","6",    " "," "," ",    " ","3"," ",
+              " "," ","3",    " "," ","6",    "9"," ","2",
+              
+              "1"," "," ",    "9","6","2",    "8","7"," ",
+              "6"," "," ",    "7"," ","5",    "1"," ","3",
+              "8","9"," ",    " "," "," ",    " "," "," ",
+              
+              "9"," "," ",    "8"," "," ",    " "," "," ",
+              " ","5","8",    " "," "," ",    " "," "," ",
+              " ","4"," ",    " ","3"," ",    " "," ","5"),
+              9, 9, byrow = T)
+
+OneToNine=paste0(c(1:9), collapse = "")
+Start=inputs
+Start[inputs==" "]=OneToNine
+Start
+```
+```{r}
+Evolve=Start
+
+# rows
+RowEliminations=function(){
+for (i in 1:9){
+defined=nchar(Evolve[i,])==1
+undefined=nchar(Evolve[i,])!=1
+appear=Evolve[i,][defined]
+for(j in appear){
+Evolve[i,][undefined]<<-str_replace(Evolve[i,], j,"")[undefined]
+}
+}
+}
+
+RowEliminations()
+Evolve
+```
+```{r}
+#columns
+ColumnEliminations=function(){
+for (i in 1:9){
+defined=nchar(Evolve[,i])==1
+undefined=nchar(Evolve[,i])!=1
+appear=Evolve[,i][defined]
+for(j in appear){
+Evolve[,i][undefined]<<-str_replace(Evolve[,i], j,"")[undefined]
+}
+}
+}
+
+ColumnEliminations()
+Evolve
+
+#ninedrents
+NinedrentsEliminations=function(){
+for (i in 1:9){
+defined=nchar(Evolve[Ninedrents==i])==1
+undefined=nchar(Evolve[Ninedrents==i])!=1
+appear=Evolve[Ninedrents==i][defined]
+for(j in appear){
+Evolve[Ninedrents==i][undefined]<<-str_replace(Evolve[Ninedrents==i], j,"")[undefined]
+}
+}
+}
+NinedrentsEliminations()
+Evolve
+
+```
+
+```{r}
+Evolution=list("0",Evolve)
+counter=2
+
+while(!identical(Evolution[[counter-1]], Evolution[[counter]] )){
+counter=counter+1
+  
+RowEliminations()
+ColumnEliminations()
+NinedrentsEliminations()
+
+Evolution[[counter]]=Evolve
+}
+
+
+Evolve
+Evolution
+```
+```{r}
+###################################
+# If there is only one place that a number can go 
+#row
+RowSelections=function(){
+for (i in 1:9){
+for (j in as.character(1:9)){
+  Detected=str_detect(Evolve[,i], j)
+  if(sum(Detected)==1){
+    Evolve[,i][str_detect(Evolve[,i], j)]<<-j
+  }
+}
+}
+}
+
+RowSelections(); Evolve
+
+#col
+ColSelections=function(){
+for (i in 1:9){
+for (j in as.character(1:9)){
+  Detected=str_detect(Evolve[i,], j)
+  if(sum(Detected)==1){
+    Evolve[i,][str_detect(Evolve[i,], j)]<<-j
+  }
+}
+}
+}
+
+ColSelections(); Evolve
+
+#ninedrents
+NinedrentsSelections=function(){
+for (i in 1:9){
+for (j in as.character(1:9)){
+  Detected=str_detect(Evolve[Ninedrents==i], j)
+  if(sum(Detected)==1){
+    Evolve[Ninedrents==i][str_detect(Evolve[Ninedrents==i], j)]<<-j
+  }
+}
+}
+}
+
+NinedrentsSelections(); Evolve
+
+```
+
+```{r}
+Evolution=list("0",Evolve)
+counter=2
+
+
+while(!identical(Evolution[[counter-1]], Evolution[[counter]] )){
+counter=counter+1
+  
+RowSelections()
+ColSelections()
+NinedrentsSelections()
+
+Evolution[[counter]]=Evolve
+}
+
+
+Evolve
+Evolution
+```
